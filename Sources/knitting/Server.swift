@@ -19,10 +19,7 @@ class Server {
         }
 
         func start() {
-                while let client = clients.dequeue() {
-                        print("client to process: \(client)")
-                        processClient(client, thread: "main")
-                }
+                createThread()
         }
 
         // MARK: - Methods
@@ -33,4 +30,31 @@ class Server {
                 print("Done processing client: \(client) in Thread: \(thread)")
         }
 
+        private func createThread() {
+                var myThread: pthread_t? = nil
+
+                var threadParam = ThreadParameter(
+                        id: ThreadIdentifier(id: "myThread"),
+                        server: self
+                )
+                var pThreadParam = UnsafeMutablePointer<ThreadParameter>.allocate(capacity: 1)
+                pThreadParam.pointee = threadParam
+
+                let result = pthread_create(
+                        &myThread,
+                        nil,
+                        threaddedFunction, // invoke global function from main.swift
+                        pThreadParam
+                )
+
+                guard result == 0 else {
+                        print("Error creating thread--")
+                        exit(EXIT_FAILURE)
+                }
+
+                // we need to join the main thread with myThread
+                // otherwise, the main thread will finish and the execution will stop
+                pthread_join(myThread!, nil)
+        }
+                
 }
