@@ -7,6 +7,9 @@ class Server {
         // MARK: - Properties
 
         var clients: Queue<Client>
+        var threadCounter: Int = 0
+
+        private var threads = [pthread_t]()
 
         // MARK: - Lifecycle
 
@@ -18,8 +21,16 @@ class Server {
                 }
         }
 
-        func start() {
-                createThread()
+        func start(numberOfThreads: Int = 1) {
+                for _ in 1...numberOfThreads {
+                        createThread()
+                }
+
+                // we need to join the main thread with myThread
+                // otherwise, the main thread will finish and the execution will stop
+                for thread in threads {
+                        pthread_join(thread, nil)
+                }
         }
 
         // MARK: - Methods
@@ -34,7 +45,7 @@ class Server {
                 var myThread: pthread_t? = nil
 
                 var threadParam = ThreadParameter(
-                        id: ThreadIdentifier(id: "myThread"),
+                        id: ThreadIdentifier(id: "myThread-\(threadCounter)"),
                         server: self
                 )
                 var pThreadParam = UnsafeMutablePointer<ThreadParameter>.allocate(capacity: 1)
@@ -51,10 +62,9 @@ class Server {
                         print("Error creating thread--")
                         exit(EXIT_FAILURE)
                 }
+                threadCounter += 1
 
-                // we need to join the main thread with myThread
-                // otherwise, the main thread will finish and the execution will stop
-                pthread_join(myThread!, nil)
+                threads.append(myThread!)
         }
                 
 }

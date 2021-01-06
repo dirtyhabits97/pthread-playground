@@ -20,6 +20,6 @@ print("Welcome to the Server simulator")
 
 let server = Server(numberOfClients: 10)
 let startTime = CFAbsoluteTimeGetCurrent()
-server.start()
+server.start(numberOfThreads: 5)
 let endTime = CFAbsoluteTimeGetCurrent()
 print("Duration: \(endTime - startTime) seconds")
